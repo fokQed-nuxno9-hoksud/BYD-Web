@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>比亞迪 (BYD) 公司深度互動報告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- 
+        Chosen Palette: Calm Harmony
+        - Main Background: #FAF7F5 (Off-white/beige)
+        - Content Backgrounds (cards, sections): #FFFFFF (White) or #F0EBE8 (Light Neutral)
+        - Primary Text: #333333 (Dark Gray)
+        - Accent Color 1 (Primary Actions, Chart Primary): #5F9EA0 (Muted Teal/Dusty Blue)
+        - Accent Color 2 (Secondary Highlights, Chart Secondary): #C87E64 (Terracotta/Muted Orange)
+        - Accent Color 3 (Chart Tertiary/Highlights): #A9A9A9 (Dark Gray - for neutral elements)
+    -->
+    <!-- 
+        Application Structure Plan:
+        - Navigation: Fixed top bar with links scrolling to sections: 概覽 (Overview), 產品縱覽 (Products), 財務表現 (Financials), 技術創新 (Technology), 全球戰略 (Global), ESG.
+        - Sections:
+            - #overview: KPIs, Interactive Timeline.
+            - #products: Tabs for NEV, Battery, Electronics, Rail. NEV tab includes product series cards & BEV/PHEV sales chart.
+            - #financials: Line charts for Revenue/Profit, Bar chart for Segment Revenue, Bar chart for R&D.
+            - #technology: Cards for Blade Battery, DM Hybrid, e-Platform, Xuanji.
+            - #global: Key market info, expansion highlights.
+            - #esg: Cards for E, S, G pillars.
+        - Interactions: Scroll-based navigation highlighting, tab switching, chart tooltips, clickable elements for more details (conceptual).
+        - User Flow: Users can navigate via top-bar or scroll sequentially. Tabs and interactive charts allow deeper dives within sections.
+        - Justification: This thematic, tabbed structure allows comprehensive coverage of BYD's multifaceted operations in a digestible, non-linear way, promoting exploration over passive reading. It balances breadth with depth.
+    -->
+    <!-- 
+        Visualization & Content Choices:
+        - Overview - KPIs: Goal: Inform. Viz: Large Text Stats. Method: HTML/CSS. Justification: Quick summary. (NO SVG)
+        - Overview - Milestones: Goal: Organize/Change. Viz: HTML/CSS Interactive Timeline. Method: HTML/CSS + JS. Justification: Chronological understanding. (NO SVG/Mermaid)
+        - Products - NEV Sales BEV/PHEV (2023): Goal: Compare/Composition. Viz: Pie Chart. Method: Chart.js. Justification: Clear proportion. (NO SVG)
+        - Products - Product Series: Goal: Inform. Viz: Interactive Cards. Method: HTML/CSS + JS (for potential detail popups, simplified here). Justification: Organized product overview. (NO SVG)
+        - Financials - Revenue Trend: Goal: Change. Viz: Line Chart. Method: Chart.js. Justification: Time-series analysis. (NO SVG)
+        - Financials - Net Profit Trend: Goal: Change. Viz: Line Chart. Method: Chart.js. Justification: Time-series analysis. (NO SVG)
+        - Financials - Revenue Breakdown (2023): Goal: Compare. Viz: Bar Chart. Method: Chart.js. Justification: Segment contribution. (NO SVG)
+        - Financials - R&D Investment Trend: Goal: Change/Compare. Viz: Bar Chart. Method: Chart.js. Justification: Growth in R&D. (NO SVG)
+        - Technology - Core Technologies: Goal: Inform. Viz: Interactive Cards/Text Blocks. Method: HTML/CSS. Justification: Key tech highlights. (NO SVG/Mermaid)
+        - Global - Strategy: Goal: Inform. Viz: Styled HTML list/cards. Method: HTML/CSS. Justification: Clear strategic points. (NO SVG)
+        - ESG - Pillars: Goal: Inform. Viz: Styled HTML cards. Method: HTML/CSS. Justification: ESG focus areas. (NO SVG)
+        - All chart label wrapping and tooltip configurations are implemented as per requirements.
+    -->
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #FAF7F5;
+            color: #333333;
+        }
+        .nav-active {
+            color: #C87E64;
+            font-weight: 500;
+            border-bottom: 2px solid #C87E64;
+        }
+        .chart-container-wrapper {
+            background-color: #FFFFFF;
+            padding: 1.5rem; /* p-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px; /* Max width for charts */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 350px; /* Max height for taller charts if needed */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .kpi-card {
+            background-color: #FFFFFF;
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1.5rem; /* p-6 */
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.07);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .kpi-value {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700;
+            color: #5F9EA0; /* Muted Teal */
+            margin-bottom: 0.25rem;
+        }
+        .kpi-label {
+            font-size: 0.875rem; /* text-sm */
+            color: #4A4A4A;
+            margin-bottom: 0.25rem;
+        }
+        .kpi-desc {
+            font-size: 0.75rem; /* text-xs */
+            color: #666666;
+        }
+        .content-card {
+            background-color: #FFFFFF;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .tab-button {
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            font-weight: 500;
+            background-color: #F0EBE8;
+            color: #4A4A4A;
+        }
+        .tab-button.active {
+            background-color: #5F9EA0; /* Muted Teal */
+            color: white;
+        }
+        .timeline { list-style: none; padding: 0; position: relative; }
+        .timeline:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 10px; /* Adjust for circle alignment */
+            width: 3px;
+            background: #A9A9A9; /* Dark Gray for line */
+            margin-left: -1.5px;
+        }
+        .timeline-item { position: relative; margin-bottom: 2rem; padding-left: 2.5rem; }
+        .timeline-item:before { /* Dot */
+            content: '';
+            background: #FFFFFF;
+            border: 3px solid #5F9EA0; /* Muted Teal */
+            border-radius: 50%;
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 20px;
+            height: 20px;
+            z-index: 1;
+        }
+        .timeline-year {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 700;
+            color: #C87E64; /* Terracotta */
+            margin-bottom: 0.25rem;
+        }
+        .timeline-title {
+            font-size: 1rem; /* text-base */
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-desc {
+            font-size: 0.875rem; /* text-sm */
+            color: #4A4A4A;
+        }
+        .section-title {
+            font-size: 2rem; /* text-3xl */
+            font-weight: 700;
+            color: #333333; /* Dark Gray */
+            margin-bottom: 1rem;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #5F9EA0; /* Muted Teal */
+            display: inline-block; /* For centering border */
+        }
+         .section-intro {
+            font-size: 1rem;
+            color: #4A4A4A;
+            margin-bottom: 2rem;
+            text-align: center;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-[#5F9EA0]">比亞迪互動報告</span>
+                </div>
+                <div class="hidden md:flex space-x-4">
+                    <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm hover:text-[#C87E64]">概覽</a>
+                    <a href="#products" class="nav-link px-3 py-2 rounded-md text-sm hover:text-[#C87E64]">產品縱覽</a>
+                    <a href="#financials" class="nav-link px-3 py-2 rounded-md text-sm hover:text-[#C87E64]">財務表現</a>
+                    <a href="#technology" class="nav-link px-3 py-2 rounded-md text-sm hover:text-[#C87E64]">技術創新</a>
+                    <a href="#global" class="nav-link px-3 py-2 rounded-md text-sm hover:text-[#C87E64]">全球戰略</a>
+                    <a href="#esg" class="nav-link px-3 py-2 rounded-md text-sm hover:text-[#C87E64]">ESG</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-[#C87E64] focus:outline-none focus:text-[#C87E64]">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-white shadow-lg">
+            <a href="#overview" class="block nav-link-mobile px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#C87E64]">概覽</a>
+            <a href="#products" class="block nav-link-mobile px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#C87E64]">產品縱覽</a>
+            <a href="#financials" class="block nav-link-mobile px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#C87E64]">財務表現</a>
+            <a href="#technology" class="block nav-link-mobile px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#C87E64]">技術創新</a>
+            <a href="#global" class="block nav-link-mobile px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#C87E64]">全球戰略</a>
+            <a href="#esg" class="block nav-link-mobile px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-[#C87E64]">ESG</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <section id="overview" class="py-8 md:py-16">
+            <div class="text-center mb-12">
+                 <h2 class="section-title">公司概覽</h2>
+                 <p class="section-intro">比亞迪，一家始於1995年的全球高科技企業，已從電池製造商發展成為涵蓋汽車、軌道交通、新能源和電子四大產業的巨頭。本節將展示比亞迪的核心數據和重要的發展里程碑，讓您快速了解這家引領全球新能源變革的企業。</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="kpi-card">
+                    <div class="kpi-value">302萬+</div>
+                    <div class="kpi-label">2023年新能源車銷量</div>
+                    <div class="kpi-desc">蟬聯全球銷量冠軍</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">6023億</div>
+                    <div class="kpi-label">2023年營收 (元)</div>
+                    <div class="kpi-desc">同比增長42.04%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">395億+</div>
+                    <div class="kpi-label">2023年研發投入 (元)</div>
+                    <div class="kpi-desc">技術驅動創新</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">70+</div>
+                    <div class="kpi-label">業務遍及國家和地區</div>
+                    <div class="kpi-desc">全球化佈局加速</div>
+                </div>
+            </div>
+            
+            <h3 class="text-2xl font-semibold text-center text-[#333333] mb-8">發展里程碑</h3>
+            <div class="content-card max-w-3xl mx-auto">
+                <ul class="timeline">
+                    <li class="timeline-item">
+                        <div class="timeline-year">1995</div>
+                        <div class="timeline-title">比亞迪成立</div>
+                        <div class="timeline-desc">進入充電電池製造領域，開啟創業征程。</div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-year">2003</div>
+                        <div class="timeline-title">進軍汽車產業</div>
+                        <div class="timeline-desc">收購西安秦川汽車，正式佈局汽車製造。</div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-year">2008</div>
+                        <div class="timeline-title">F3DM上市</div>
+                        <div class="timeline-desc">全球首款量產插電式混合動力汽車問世。巴菲特旗下公司投資。</div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-year">2020</div>
+                        <div class="timeline-title">刀片電池發布</div>
+                        <div class="timeline-desc">以其高安全性和長壽命引發行業關注，重新定義磷酸鐵鋰電池。</div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-year">2022</div>
+                        <div class="timeline-title">新能源汽車全球銷冠</div>
+                        <div class="timeline-desc">正式停產燃油車，專注新能源；年銷量186萬輛，全球第一。</div>
+                    </li>
+                     <li class="timeline-item">
+                        <div class="timeline-year">2023</div>
+                        <div class="timeline-title">銷量再破紀錄</div>
+                        <div class="timeline-desc">新能源汽車銷量突破302萬輛，蟬聯全球冠軍。第500萬輛新能源汽車下線。</div>
+                    </li>
+                     <li class="timeline-item">
+                        <div class="timeline-year">2024</div>
+                        <div class="timeline-title">第五代DM技術發布</div>
+                        <div class="timeline-desc">實現百公里虧電油耗2.9升，綜合續航2100公里，引領混動技術新高度。</div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="products" class="py-8 md:py-16 bg-[#F0EBE8] -mx-4 md:-mx-8 px-4 md:px-8">
+            <div class="container mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="section-title">產品縱覽</h2>
+                    <p class="section-intro">比亞迪的產品線覆蓋廣泛，從引領市場的新能源汽車，到核心的電池技術，再到尖端的電子產品和創新的軌道交通解決方案。本節將通過互動選項卡展示各主要產品線的亮點。</p>
+                </div>
+
+                <div class="content-card">
+                    <div class="mb-4 border-b border-gray-200">
+                        <nav class="flex flex-wrap -mb-px" id="productTabs">
+                            <button data-tab="nev" class="tab-button active">新能源汽車</button>
+                            <button data-tab="battery" class="tab-button">電池技術</button>
+                            <button data-tab="electronics" class="tab-button">電子產品</button>
+                            <button data-tab="rail" class="tab-button">軌道交通</button>
+                        </nav>
+                    </div>
+
+                    <div id="tabContent">
+                        <div data-tab-content="nev" class="tab-pane active">
+                            <h4 class="text-xl font-semibold mb-4 text-[#5F9EA0]">新能源汽車矩陣</h4>
+                            <p class="text-sm text-gray-600 mb-6">比亞迪構建了王朝、海洋、騰勢、仰望、方程豹等多元品牌矩陣，覆蓋從家用到豪華、從大眾到個性的全方位需求。</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">王朝系列</h5>
+                                    <p class="text-xs text-gray-500 mb-1">經典傳承，如秦、漢、唐、宋、元。</p>
+                                    <p class="text-sm text-gray-700">融合中國文化與現代科技，提供轎車、SUV等多種車型，以強勁性能和智能科技著稱。</p>
+                                </div>
+                                <div class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">海洋系列</h5>
+                                    <p class="text-xs text-gray-500 mb-1">年輕風尚，如海豚、海豹、海獅。</p>
+                                    <p class="text-sm text-gray-700">設計更時尚動感，主打年輕消費群體，以e平台3.0技術為核心，帶來卓越純電體驗。</p>
+                                </div>
+                                <div class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">騰勢 (DENZA)</h5>
+                                     <p class="text-xs text-gray-500 mb-1">高端智能豪華MPV D9等。</p>
+                                    <p class="text-sm text-gray-700">融合比亞迪技術與奔馳品質，定位高端智能新能源汽車，D9 MPV市場表現亮眼。</p>
+                                </div>
+                                <div class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">仰望 (YangWang) & 方程豹</h5>
+                                     <p class="text-xs text-gray-500 mb-1">百萬級U8與專業個性化豹5。</p>
+                                    <p class="text-sm text-gray-700">仰望定位百萬級豪華，方程豹主打專業個性化，展示比亞迪在頂級技術和細分市場的探索。</p>
+                                </div>
+                            </div>
+                            <div class="chart-container-wrapper">
+                                <h5 class="text-lg font-semibold text-center text-[#333333] mb-3">2023年新能源汽車銷量結構 (示意)</h5>
+                                <p class="text-xs text-center text-gray-500 mb-3">比亞迪純電動(BEV)與插電混動(PHEV)車型齊頭並進，滿足不同用戶需求。</p>
+                                <div class="chart-container" style="height: 280px; max-height: 300px;">
+                                    <canvas id="nevTypeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div data-tab-content="battery" class="tab-pane hidden">
+                            <h4 class="text-xl font-semibold mb-4 text-[#5F9EA0]">核心電池技術</h4>
+                             <p class="text-sm text-gray-600 mb-6">比亞迪以電池起家，是全球領先的充電電池製造商，動力電池技術尤為突出。</p>
+                            <ul class="space-y-4">
+                                <li class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">刀片電池 (Blade Battery)</h5>
+                                    <p class="text-sm text-gray-700">革命性的磷酸鐵鋰電池技術，通過結構創新大幅提升安全性、循環壽命和能量密度，已成為比亞迪新能源汽車標配。</p>
+                                </li>
+                                <li class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">CTB (Cell to Body) 技術</h5>
+                                    <p class="text-sm text-gray-700">電池車身一體化技術，將刀片電池深度融入車輛結構，提升車輛扭轉剛度、安全性能和空間利用率。</p>
+                                </li>
+                                <li class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">儲能解決方案</h5>
+                                    <p class="text-sm text-gray-700">提供從大型電網級儲能到工商業及家庭儲能的全場景解決方案，助力全球能源綠色轉型。</p>
+                                    <p class="text-xs text-gray-500 mt-1">關鍵數據：全球第二大電動汽車電池生產商。</p>
+                                </li>
+                            </ul>
+                        </div>
+                        <div data-tab-content="electronics" class="tab-pane hidden">
+                            <h4 class="text-xl font-semibold mb-4 text-[#5F9EA0]">電子產品業務</h5>
+                            <p class="text-sm text-gray-600 mb-6">通過子公司比亞迪電子運營，是全球領先的平台型高端製造企業。</p>
+                            <ul class="space-y-3 list-disc list-inside text-gray-700">
+                                <li><span class="font-medium text-[#333333]">智能手機部件及組裝：</span>為全球頂級品牌提供外殼、結構件及整機組裝服務。</li>
+                                <li><span class="font-medium text-[#333333]">新型智能產品：</span>佈局平板電腦、筆記本電腦、無人機、電子煙等。</li>
+                                <li><span class="font-medium text-[#333333]">汽車智能系統：</span>提供智能座艙、智能網聯等解決方案。</li>
+                                <li><span class="font-medium text-[#333333]">健康醫療：</span>疫情期間快速響應，生產口罩等醫療防護產品。</li>
+                            </ul>
+                             <p class="text-sm text-gray-600 mt-4">2023年，電子業務營收約1185.77億元人民幣，同比增長20%。</p>
+                        </div>
+                        <div data-tab-content="rail" class="tab-pane hidden">
+                            <h4 class="text-xl font-semibold mb-4 text-[#5F9EA0]">軌道交通解決方案</h5>
+                            <p class="text-sm text-gray-600 mb-6">致力於為城市提供綠色、智能的立體化交通解決方案，緩解交通擁堵。</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">雲軌 (SkyRail)</h5>
+                                    <p class="text-sm text-gray-700">中運量跨座式單軌系統，建設成本低、週期短、適應性強，已在國內外多個城市落地。</p>
+                                </div>
+                                <div class="p-4 border rounded-lg bg-gray-50">
+                                    <h5 class="font-semibold text-lg text-[#333333]">雲巴 (SkyShuttle)</h5>
+                                    <p class="text-sm text-gray-700">小運量膠輪有軌電車系統，適用於大型社區、科技園區接駁，解決「最後一公里」出行難題。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="financials" class="py-8 md:py-16">
+            <div class="text-center mb-12">
+                <h2 class="section-title">財務表現</h2>
+                <p class="section-intro">新能源汽車業務的蓬勃發展帶動比亞迪整體財務表現持續向好。本節通過一系列圖表展示公司的營收、利潤及研發投入等關鍵財務指標的增長趨勢。</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="chart-container-wrapper">
+                    <h3 class="text-lg font-semibold text-center text-[#333333] mb-1">營業收入趨勢</h3>
+                    <p class="text-xs text-center text-gray-500 mb-3">(億元人民幣)</p>
+                    <div class="chart-container">
+                        <canvas id="revenueTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="text-lg font-semibold text-center text-[#333333] mb-1">淨利潤趨勢</h3>
+                    <p class="text-xs text-center text-gray-500 mb-3">(億元人民幣)</p>
+                    <div class="chart-container">
+                        <canvas id="netProfitTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="chart-container-wrapper">
+                    <h3 class="text-lg font-semibold text-center text-[#333333] mb-1">2023年營收構成</h3>
+                    <p class="text-xs text-center text-gray-500 mb-3">(億元人民幣)</p>
+                    <div class="chart-container">
+                        <canvas id="revenueSegmentChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container-wrapper">
+                    <h3 class="text-lg font-semibold text-center text-[#333333] mb-1">研發投入趨勢</h3>
+                    <p class="text-xs text-center text-gray-500 mb-3">(億元人民幣)</p>
+                    <div class="chart-container">
+                        <canvas id="rdInvestmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="technology" class="py-8 md:py-16 bg-[#F0EBE8] -mx-4 md:-mx-8 px-4 md:px-8">
+            <div class="container mx-auto">
+                 <div class="text-center mb-12">
+                    <h2 class="section-title">技術創新</h2>
+                    <p class="section-intro">「技術為王，創新為本」是比亞迪的發展理念。公司在電池、電機、電控等核心技術領域持續深耕，構建了強大的技術護城河。這裡將重點介紹幾項引領行業的關鍵技術。</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <div class="content-card">
+                        <h3 class="text-xl font-semibold text-[#5F9EA0] mb-2">刀片電池 (Blade Battery)</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">比亞迪自主研發的磷酸鐵鋰電池，採用獨特長條化電芯和無模組CTP設計，極大提升了電池包的安全性（通過針刺等極端測試）、能量密度和循環壽命，有效解決了新能源汽車用戶的核心痛點。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="text-xl font-semibold text-[#5F9EA0] mb-2">DM混動技術 (Dual Mode)</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">已迭代至第五代，實現了發動機熱效率、虧電油耗和綜合續航的全球領先水平。旗下DM-i（主打節油）、DM-p（主打性能）和DMO（越野平台）滿足多樣化需求，推動PHEV市場高速發展。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="text-xl font-semibold text-[#5F9EA0] mb-2">e平台3.0 / e平台3.0 Evo</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">專為下一代高性能智能電動汽車打造的純電專屬平台，具備智能、高效、安全、美學四大特點。深度集成八合一電動力總成、寬溫域高效熱泵等技術，Evo版進一步提升充電與溫控性能。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="text-xl font-semibold text-[#5F9EA0] mb-2">璇璣智能化架構 (XUANJI)</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">整車級智能化解決方案，融合車控、智駕、座艙為一體，實現車輛自主學習和持續進化。旨在提供更安全、更便捷、更個性化的智能出行體驗，是比亞迪智能化戰略的核心。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="global" class="py-8 md:py-16">
+             <div class="text-center mb-12">
+                <h2 class="section-title">全球戰略</h2>
+                <p class="section-intro">比亞迪正加速其全球化步伐，將中國新能源技術和產品推向世界。通過本地化運營、建設海外生產基地和深化國際合作，比亞迪致力於成為全球領先的綠色科技企業。</p>
+            </div>
+            <div class="content-card max-w-4xl mx-auto">
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-3 text-[#5F9EA0]">🌍</span>
+                        <div>
+                            <h4 class="font-semibold text-lg text-[#333333]">市場拓展廣泛</h4>
+                            <p class="text-sm text-gray-700">新能源乘用車已進入德國、日本、澳大利亞、巴西、泰國等70多個國家和地區，並在多個市場取得領先地位。</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                         <span class="text-2xl mr-3 text-[#C87E64]">🏭</span>
+                        <div>
+                            <h4 class="font-semibold text-lg text-[#333333]">本地化生產佈局</h4>
+                            <p class="text-sm text-gray-700">在泰國、巴西、匈牙利、烏茲別克斯坦等國家投資建設生產基地，深化本地化供應鏈和運營。</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                         <span class="text-2xl mr-3 text-[#5F9EA0]">🤝</span>
+                        <div>
+                            <h4 class="font-semibold text-lg text-[#333333]">國際合作深化</h4>
+                            <p class="text-sm text-gray-700">與殼牌等國際夥伴合作建設充電設施，與全球頂級供應商建立合作，共同推動新能源產業發展。</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-3 text-[#C87E64]">🌱</span>
+                        <div>
+                            <h4 class="font-semibold text-lg text-[#333333]">綠色科技出海</h4>
+                            <p class="text-sm text-gray-700">不僅輸出汽車產品，更輸出儲能系統、太陽能等綠色技術解決方案，助力全球可持續發展。</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="esg" class="py-8 md:py-16 bg-[#F0EBE8] -mx-4 md:-mx-8 px-4 md:px-8">
+             <div class="container mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="section-title">環境、社會與治理 (ESG)</h2>
+                    <p class="section-intro">比亞迪將可持續發展融入企業戰略，積極履行在環境保護、社會責任和公司治理方面的承諾，致力於「為地球降溫1℃」，實現企業與社會的共同繁榮。</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="content-card text-center">
+                         <div class="text-4xl mb-3">🌿</div>
+                        <h3 class="text-xl font-semibold text-green-600 mb-2">環境保護 (E)</h3>
+                        <p class="text-sm text-gray-700">全面推廣新能源產品，實現工廠綠色運營，構建電池回收閉環，2022年率先停產燃油車。</p>
+                    </div>
+                    <div class="content-card text-center">
+                        <div class="text-4xl mb-3">❤️</div>
+                        <h3 class="text-xl font-semibold text-red-500 mb-2">社會責任 (S)</h3>
+                        <p class="text-sm text-gray-700">保障員工權益與安全，嚴控產品質量，積極投身公益慈善，疫情期間援產口罩。</p>
+                    </div>
+                    <div class="content-card text-center">
+                        <div class="text-4xl mb-3">⚖️</div>
+                        <h3 class="text-xl font-semibold text-blue-600 mb-2">公司治理 (G)</h3>
+                        <p class="text-sm text-gray-700">健全治理結構，堅持合規經營，保障信息透明，重視與投資者溝通。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="bg-[#333333] text-gray-300 text-center p-6 mt-8">
+        <p class="text-sm">&copy; 2025 比亞迪公司深度互動報告。基於公開數據整理，僅供參考。</p>
+        <p class="text-xs mt-1">本報告不構成任何投資建議。所有數據請以官方最新發布為準。</p>
+    </footer>
+
+    <script>
+        // Color Palette (JS variables for charts)
+        const chartColors = {
+            primary: '#5F9EA0', // Muted Teal
+            secondary: '#C87E64', // Terracotta
+            tertiary: '#A9A9A9', // Dark Gray (for neutral elements or less emphasis)
+            accent1: '#F0EBE8', // Light Neutral (for backgrounds or subtle elements)
+            textPrimary: '#333333',
+            textSecondary: '#4A4A4A'
+        };
+
+        // Helper function for label wrapping
+        function wrapChartLabel(str, maxWidth = 16) {
+            if (typeof str !== 'string') str = String(str);
+            if (str.length <= maxWidth) return str;
+            const words = str.split(' ');
+            let lines = [];
+            let currentLine = words[0];
+            for (let i = 1; i < words.length; i++) {
+                if ((currentLine + ' ' + words[i]).length > maxWidth && currentLine.length > 0) {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                } else {
+                    currentLine += (currentLine.length > 0 ? ' ' : '') + words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+        
+        // Default Chart.js Tooltip configuration
+        const defaultTooltipCallbacks = {
+            title: function(tooltipItems) {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                return Array.isArray(label) ? label.join(' ') : label;
+            }
+        };
+
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: chartColors.textPrimary, font: { size: 12 } }
+                },
+                tooltip: {
+                    callbacks: defaultTooltipCallbacks,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleFont: { size: 13 },
+                    bodyFont: { size: 12 },
+                    padding: 10
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: chartColors.textSecondary, font: { size: 11 } },
+                    grid: { display: false }
+                },
+                y: {
+                    ticks: { color: chartColors.textSecondary, font: { size: 11 }, callback: function(value) { return value + ' '; } }, // Added space for y-axis
+                    grid: { color: '#E0E0E0', zeroLineColor: '#C0C0C0' },
+                    beginAtZero: true
+                }
+            }
+        };
+
+
+        // Product Tabs
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('[data-tab-content]');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                const targetTab = button.dataset.tab;
+                tabPanes.forEach(pane => {
+                    if (pane.dataset.tabContent === targetTab) {
+                        pane.classList.remove('hidden');
+                        pane.classList.add('active');
+                    } else {
+                        pane.classList.add('hidden');
+                        pane.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // Mobile Menu
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+             // Close mobile menu when a link is clicked
+            document.querySelectorAll('.nav-link-mobile').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        }
+
+
+        // Navigation Active State
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section[id]');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 80) { // 80 as offset for fixed nav
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('nav-active');
+                if (link.getAttribute('href').substring(1) === current) {
+                    link.classList.add('nav-active');
+                }
+            });
+        });
+
+
+        // Chart Implementations
+        // 1. NEV Type Chart (Pie)
+        const nevTypeData = {
+            labels: [wrapChartLabel('純電動 (BEV)'), wrapChartLabel('插電混動 (PHEV)')],
+            datasets: [{
+                label: '2023年銷量結構',
+                data: [157.48, 143.81], // Example data for BEV: ~52%, PHEV: ~48% of 302.44万辆. Sum is 301.29. This is illustrative.
+                backgroundColor: [chartColors.primary, chartColors.secondary],
+                borderColor: '#FFFFFF',
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        };
+        const nevTypeCanvas = document.getElementById('nevTypeChart');
+        if (nevTypeCanvas) {
+            new Chart(nevTypeCanvas.getContext('2d'), {
+                type: 'pie',
+                data: nevTypeData,
+                options: { ...commonChartOptions, scales: {} } // No scales for pie
+            });
+        }
+
+        // 2. Revenue Trend Chart (Line)
+        const revenueTrendData = {
+            labels: ['2021', '2022', '2023', wrapChartLabel('2024 Q1')],
+            datasets: [{
+                label: '營業收入',
+                data: [2161.42, 4240.61, 6023.15, 1249.4], // 2021 data added for trend
+                borderColor: chartColors.primary,
+                backgroundColor: 'rgba(95, 158, 160, 0.1)', // Muted Teal with alpha
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: chartColors.primary
+            }]
+        };
+        const revenueTrendCanvas = document.getElementById('revenueTrendChart');
+        if (revenueTrendCanvas) {
+            new Chart(revenueTrendCanvas.getContext('2d'), {
+                type: 'line',
+                data: revenueTrendData,
+                options: commonChartOptions
+            });
+        }
+
+        // 3. Net Profit Trend Chart (Line)
+        const netProfitTrendData = {
+            labels: ['2021', '2022', '2023', wrapChartLabel('2024 Q1')],
+            datasets: [{
+                label: '淨利潤',
+                data: [30.45, 166.22, 300.41, 45.69], // 2021 data added for trend
+                borderColor: chartColors.secondary,
+                backgroundColor: 'rgba(200, 126, 100, 0.1)', // Terracotta with alpha
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: chartColors.secondary
+            }]
+        };
+        const netProfitTrendCanvas = document.getElementById('netProfitTrendChart');
+        if (netProfitTrendCanvas) {
+             new Chart(netProfitTrendCanvas.getContext('2d'), {
+                type: 'line',
+                data: netProfitTrendData,
+                options: commonChartOptions
+            });
+        }
+
+        // 4. Revenue by Segment Chart (Bar) - 2023
+        const revenueSegmentData = {
+            labels: [wrapChartLabel('汽車及相關產品'), wrapChartLabel('手機部件、組裝及其他')],
+            datasets: [{
+                label: '2023年營收',
+                data: [4834.53, 1185.77],
+                backgroundColor: [chartColors.primary, chartColors.secondary],
+                borderRadius: 4
+            }]
+        };
+        const revenueSegmentCanvas = document.getElementById('revenueSegmentChart');
+        if (revenueSegmentCanvas) {
+            new Chart(revenueSegmentCanvas.getContext('2d'), {
+                type: 'bar',
+                data: revenueSegmentData,
+                options: { ...commonChartOptions, indexAxis: 'y' } // Horizontal bar
+            });
+        }
+
+        // 5. R&D Investment Trend Chart (Bar)
+        const rdInvestmentData = {
+            labels: ['2021', '2022', '2023'],
+            datasets: [{
+                label: '研發投入',
+                data: [106.27, 202.23, 395.75],
+                backgroundColor: [chartColors.tertiary, chartColors.secondary, chartColors.primary],
+                borderRadius: 4
+            }]
+        };
+        const rdInvestmentCanvas = document.getElementById('rdInvestmentChart');
+        if (rdInvestmentCanvas) {
+            new Chart(rdInvestmentCanvas.getContext('2d'), {
+                type: 'bar',
+                data: rdInvestmentData,
+                options: commonChartOptions
+            });
+        }
+
+    </script>
+</body>
+</html>
